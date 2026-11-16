@@ -1,7 +1,7 @@
-﻿<!-- Header -->
+<!-- Header -->
 <div align="center">
 
-# ðŸ›°ï¸ Doppler Geolocator
+# 🛰️ Doppler Geolocator
 
 ### Locate a recording from aircraft Doppler signatures & open ADSB data
 
@@ -11,9 +11,9 @@
 [![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Web App](https://img.shields.io/badge/Runs%20in-Browser-58a6ff?logo=googlechrome&logoColor=white)](#-quick-start)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)]()
+[![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)](https://github.com/Abdullah-Chaudary/doppler-geolocator/commits/main)
 
-[Quick Start](#-quick-start) Â· [How It Works](#-how-it-works) Â· [Roadmap](#-roadmap) Â· [Limitations](#-honest-limitations) Â· [Contributing](#-contributing)
+[Quick Start](#-quick-start) · [How It Works](#-how-it-works) · [Roadmap](#-roadmap) · [Limitations](#-honest-limitations) · [Contributing](#-contributing)
 
 </div>
 
@@ -27,7 +27,7 @@
 
 ---
 
-## ðŸ“– Table of Contents
+## 📖 Table of Contents
 
 - [What is this?](#-what-is-this)
 - [Demo](#-demo)
@@ -50,65 +50,63 @@
 
 ---
 
-## ðŸŽ¯ What is this?
+## 🎯 What is this?
 
 **Doppler Geolocator** is an open-source implementation of a geolocation technique that turns a faint, *inaudible* Doppler curve in a recording into a GPS coordinate.
 
-A plane flying overhead shifts the pitch of its engine â€” a **Doppler curve** â€” and the exact shape of that curve encodes the plane's **speed** and its **closest distance** to the microphone. Combine that with public **ADSB** flight-tracking data, and you can compute exactly where the microphone must have been.
+A plane flying overhead shifts the pitch of its engine — a **Doppler curve** — and the exact shape of that curve encodes the plane's **speed** and its **closest distance** to the microphone. Combine that with public **ADSB** flight-tracking data, and you can compute exactly where the microphone must have been.
 
 No visual landmarks. No metadata. No GPS. Just the hum of a propeller.
 
 <div align="center">
 
-**Input:** ðŸŽ™ï¸ ~1 minute of audio + ðŸ“¡ a day of ADSB data + ðŸ—ºï¸ a rough search area
+**Input:** 🎙️ ~1 minute of audio + 📡 a day of ADSB data + 🗺️ a rough search area
 
-**Output:** ðŸ“ a coordinate, usually within a few hundred feet
+**Output:** 📍 a coordinate, usually within a few hundred feet
 
 </div>
 
 ---
 
-## ðŸŽ¬ Demo
+## 🎬 Demo
 
 <div align="center">
 
-*(Replace this with your own demo GIF / screenshot)*
-
-`![demo](docs/demo.gif)`
+*(No demo GIF yet — PRs welcome! Until then, open `web/index.html` and try it yourself.)*
 
 </div>
 
 ---
 
-## âœ¨ Features
+## ✨ Features
 
-- ðŸŽ§ **In-browser spectrogram** â€” STFT computation, zoomable time/frequency axes, click-to-measure
-- ðŸ“ **Doppler curve fitting** â€” nonlinear least squares with uncertainty bounds on speed, slant distance, and fundamental frequency
-- ðŸ“¡ **ADSB ingestion** â€” parse a day of flight-tracking CSVs into interpolated space-time tracks
-- ðŸ§® **Candidate generation funnel** â€” velocity â†’ distance â†’ time-offset â†’ silence filtering, in that order (cheapest to most expensive)
-- ðŸŒŠ **Retarded-time forward model** â€” correctly models the emission-time delay so the predicted curve matches reality, not just approximately
-- ðŸ”’ **Locked-offset scoring** â€” prevents false positives by scoring both events against a geometry-derived time offset
-- ðŸ—ºï¸ **Interactive Leaflet map** â€” visualize candidate grids, flight tracks, and the winning coordinate
-- ðŸ§© **Single-event mode** â€” works with just one plane if the recording time is known
-- ðŸ§ª **Pluggable sound sources** â€” designed for thunder, sirens, trains, and church bells as well as aircraft (see [Roadmap](#-roadmap))
+- 🎧 **In-browser spectrogram** — STFT computation, zoomable time/frequency axes, click-to-measure
+- 📐 **Doppler curve fitting** — nonlinear least squares with uncertainty bounds on speed, slant distance, and fundamental frequency
+- 📡 **ADSB ingestion** — parse a day of flight-tracking CSVs into interpolated space-time tracks
+- 🧮 **Candidate generation funnel** — velocity → distance → time-offset → silence filtering, in that order (cheapest to most expensive)
+- 🌊 **Retarded-time forward model** — correctly models the emission-time delay so the predicted curve matches reality, not just approximately
+- 🔒 **Locked-offset scoring** — prevents false positives by scoring both events against a geometry-derived time offset
+- 🗺️ **Interactive Leaflet map** — visualize candidate grids, flight tracks, and the winning coordinate
+- 🧩 **Single-event mode** — works with just one plane if the recording time is known
+- 🧪 **Pluggable sound sources** — designed for thunder, sirens, trains, and church bells as well as aircraft (see [Roadmap](#-roadmap))
 
 ---
 
-## âš™ï¸ How It Works
+## ⚙️ How It Works
 
 The pipeline is a funnel: each stage extracts information that eliminates more wrong answers than the last.
 
 ```mermaid
 flowchart TD
-    A[ðŸŽ™ï¸ Audio] --> B[STFT / Spectrogram]
+    A[🎙️ Audio] --> B[STFT / Spectrogram]
     B --> C[Click the Doppler ridge]
     C --> D[Fit Doppler model]
     D --> D1[Speed range]
     D --> D2[Slant distance range]
-    D --> D3[Fundamental freq fâ‚€]
+    D --> D3[Fundamental freq f₀]
     D --> D4[CPA timestamp]
 
-    E[ðŸ“¡ ADSB CSV] --> F[Group rows by hex ID]
+    E[📡 ADSB CSV] --> F[Group rows by hex ID]
     F --> G[Interpolate space-time tracks]
 
     D1 --> H[Candidate grid over search area]
@@ -125,7 +123,7 @@ flowchart TD
     M --> N[Forward-model curve<br/>with retarded time]
     N --> O[Score vs. spectrogram<br/>locked offset]
     O --> P[Rank by combined score]
-    P --> Q[ðŸ“ Winning coordinate]
+    P --> Q[📍 Winning coordinate]
 ```
 
 ### The physics in one box
@@ -142,25 +140,25 @@ For a listener hearing a sound at time $t$, the sound was **emitted** at $t_{\te
 
 $$t = t_{\text{emit}} + \frac{r(t_{\text{emit}})}{c}$$
 
-This **retarded-time** correction is the single most important subtlety â€” using the plane's velocity at the *received* time produces an entirely wrong curve, not just a delayed one. The forward model in this tool solves for $t_{\text{emit}}$ by fixed-point iteration.
+This **retarded-time** correction is the single most important subtlety — using the plane's velocity at the *received* time produces an entirely wrong curve, not just a delayed one. The forward model in this tool solves for $t_{\text{emit}}$ by fixed-point iteration.
 
 ### Stage summary
 
 | Stage | What it does | Why it matters |
 |---|---|---|
-| **1. Spectrogram** | STFT of the audio â†’ 2D time-frequency image | Makes the faint curve visible |
+| **1. Spectrogram** | STFT of the audio → 2D time-frequency image | Makes the faint curve visible |
 | **2. Curve fit** | Least-squares fit of the Doppler model | Extracts speed, distance, $f_0$, offset with bounds |
 | **3. ADSB tracks** | Group + interpolate flight reports | Enables predicting what a listener *would* hear |
-| **4. Funnel** | Velocity â†’ distance â†’ offset â†’ silence filters | Collapses billions of points to thousands |
+| **4. Funnel** | Velocity → distance → offset → silence filters | Collapses billions of points to thousands |
 | **5. Forward model** | Predict curve from real geometry, with retarded time | Correct shape, not just approximate |
 | **6. Locked scoring** | Sum spectrogram brightness under predicted curve | Final discriminator between candidates |
 | **7. Rank** | Best point per flight-pair | The winner |
 
 ---
 
-## ðŸš€ Quick Start
+## 🚀 Quick Start
 
-### Option A â€” Zero-install (single file)
+### Option A — Zero-install (single file)
 
 ```bash
 git clone https://github.com/Abdullah-Chaudary/doppler-geolocator.git
@@ -171,9 +169,9 @@ open index.html        # macOS
 # or: start index.html      # Windows
 ```
 
-The entire web app is a single self-contained HTML file. No build step, no server, no dependencies beyond two CDN-hosted libraries (Leaflet + a spectrogram renderer).
+The entire web app is a single self-contained HTML file. No build step, no server, no dependencies beyond one CDN-hosted library ([Leaflet](https://leafletjs.com)).
 
-### Option B â€” Local dev server
+### Option B — Local dev server
 
 ```bash
 npx serve web
@@ -183,9 +181,9 @@ python -m http.server 8000 --directory web
 
 Then visit [http://localhost:8000](http://localhost:8000).
 
-### Option C â€” Full pipeline (Python / Node)
+### Option C — Full pipeline (Python / Node)
 
-*(Coming in v0.2 â€” see [Roadmap](#-roadmap).)*
+*(Coming in v0.2 — see [Roadmap](#-roadmap).)*
 
 ```bash
 pip install -r requirements.txt
@@ -194,15 +192,15 @@ python -m geolocator.cli --audio recording.wav --adsb day.csv --area area.geojso
 
 ---
 
-## ðŸŽ“ Usage
+## 🎓 Usage
 
 ### 1. Load the audio
 
-Upload your recording in the **Audio** tab. Adjust FFT size and hop until the Doppler ridge is visible in the spectrogram. Zoom into the right frequency band and boost contrast if needed â€” the curve is often *inaudible* but visible.
+Upload your recording in the **Audio** tab. Adjust FFT size and hop until the Doppler ridge is visible in the spectrogram. Zoom into the right frequency band and boost contrast if needed — the curve is often *inaudible* but visible.
 
 ### 2. Mark the curve
 
-Click along the visible ridge to place measurement points. For two-event recordings, fit the first, click **Apply fit â†’ Event 1**, then repeat for the second. You now have:
+Click along the visible ridge to place measurement points. For two-event recordings, fit the first, click **Apply fit → Event 1**, then repeat for the second. You now have:
 
 - A **speed range** (m/s)
 - A **slant distance range** (m)
@@ -231,7 +229,9 @@ Click **Run search**. Watch the progress bar as the funnel narrows. Open the **R
 - The winning coordinate dropped on the map
 - Predicted-vs-actual curve overlays for the top candidates
 
-### Library usage (JS)
+### Library usage (JS) — planned
+
+> Not published to npm yet; this is the intended API once the modules are split out (see [Roadmap](#-roadmap)).
 
 ```javascript
 import { spectrogram, fitDoppler, searchCandidates } from 'doppler-geolocator';
@@ -250,7 +250,7 @@ const candidates = await searchCandidates({
 
 ---
 
-## ðŸ“„ Data Formats
+## 📄 Data Formats
 
 ### ADSB CSV
 
@@ -265,7 +265,7 @@ a1b2c3,1694120410,39.7410,-104.9951,12100,242
 
 | Column | Meaning | Units |
 |---|---|---|
-| `hex` | Aircraft ICAO identifier | â€” |
+| `hex` | Aircraft ICAO identifier | — |
 | `timestamp` | Unix seconds (any consistent epoch) | s |
 | `lat`, `lon` | WGS84 position | degrees |
 | `alt_ft` | Barometric altitude (auto-detected feet > 1000) | ft |
@@ -275,7 +275,7 @@ Rows sharing a `hex` become one flight track, ordered by timestamp.
 
 ### Audio
 
-WAV, MP3, OGG, M4A â€” anything the Web Audio API can decode.
+WAV, MP3, OGG, M4A — anything the Web Audio API can decode.
 
 ### Search area
 
@@ -283,7 +283,7 @@ A GeoJSON `Polygon` / `Feature` / `FeatureCollection`, or simply a bounding box 
 
 ---
 
-## ðŸ”§ Configuration
+## 🔧 Configuration
 
 | Parameter | Default | Meaning |
 |---|---|---|
@@ -293,16 +293,16 @@ A GeoJSON `Polygon` / `Feature` / `FeatureCollection`, or simply a bounding box 
 | `refineGridMeters` | 100 | Sub-grid spacing for final scoring |
 | `hearingRadiusMeters` | 10000 | Max distance a plane is assumed audible |
 | `groundElevationMeters` | 0 | Assumed constant ground elevation (see roadmap) |
-| `speedTolerance` | Â±15% | Velocity filter tolerance |
-| `distanceTolerance` | Â±15% | Slant-distance filter tolerance |
+| `speedTolerance` | ±15% | Velocity filter tolerance |
+| `distanceTolerance` | ±15% | Slant-distance filter tolerance |
 | `offsetToleranceSec` | 5 | Time-offset filter tolerance |
-| `fundamentalSweepHz` | Â±2 | Sweep range for $f_0$ alignment |
-| `timeSweepSec` | Â±3 | Sweep range for event-1 temporal alignment |
+| `fundamentalSweepHz` | ±2 | Sweep range for $f_0$ alignment |
+| `timeSweepSec` | ±3 | Sweep range for event-1 temporal alignment |
 | `topCandidatesToScore` | 500 | Cap on full forward-model scoring |
 
 ---
 
-## ðŸ—ï¸ Architecture
+## 🏗️ Architecture
 
 ```mermaid
 graph LR
@@ -325,55 +325,57 @@ graph LR
     K -.-> H
 ```
 
-The web app runs entirely client-side. The optional Python backend (roadmap) handles the heavy industrial-scale pieces that don't fit in a browser tab â€” country-wide ADSB ingestion, DEM lookups, and batch curve scoring across tens of thousands of candidates.
+The web app runs entirely client-side. The optional Python backend (roadmap) handles the heavy industrial-scale pieces that don't fit in a browser tab — country-wide ADSB ingestion, DEM lookups, and batch curve scoring across tens of thousands of candidates.
 
 ---
 
-## ðŸ“‚ Repository Structure
+## 📂 Repository Structure
+
+> **Note:** This is the *target* layout. Today the repo ships `web/index.html` plus community docs — the rest lands per the [roadmap](#-roadmap). See [Implementation Status](#-implementation-status).
 
 ```
 doppler-geolocator/
-â”œâ”€â”€ web/
-â”‚   â”œâ”€â”€ index.html              # Single-file web app
-â”‚   â”œâ”€â”€ doppler.js              # Forward model + retarded-time solver
-â”‚   â”œâ”€â”€ spectrogram.js          # STFT + rendering
-â”‚   â”œâ”€â”€ search.js               # Candidate funnel + scoring
-â”‚   â””â”€â”€ adsb.js                 # CSV parsing + track interpolation
-â”œâ”€â”€ python/                     # Optional pipeline (roadmap)
-â”‚   â”œâ”€â”€ geolocator/
-â”‚   â”‚   â”œâ”€â”€ adsb.py
-â”‚   â”‚   â”œâ”€â”€ dem.py
-â”‚   â”‚   â”œâ”€â”€ doppler.py
-â”‚   â”‚   â”œâ”€â”€ search.py
-â”‚   â”‚   â””â”€â”€ cli.py
-â”‚   â””â”€â”€ requirements.txt
-â”œâ”€â”€ data/
-â”‚   â”œâ”€â”€ sample-adsb.csv         # Small demo dataset
-â”‚   â””â”€â”€ sample-audio.wav        # Demo recording (synthetic)
-â”œâ”€â”€ docs/
-â”‚   â”œâ”€â”€ demo.gif
-â”‚   â”œâ”€â”€ methodology.md          # Deep-dive on the math
-â”‚   â””â”€â”€ architecture.md
-â”œâ”€â”€ tests/
-â”‚   â”œâ”€â”€ test_doppler.js
-â”‚   â”œâ”€â”€ test_search.js
-â”‚   â””â”€â”€ test_adsb.py
-â”œâ”€â”€ .github/
-â”‚   â”œâ”€â”€ workflows/
-â”‚   â”‚   â”œâ”€â”€ ci.yml
-â”‚   â”‚   â””â”€â”€ deploy-pages.yml
-â”‚   â”œâ”€â”€ ISSUE_TEMPLATE/
-â”‚   â””â”€â”€ PULL_REQUEST_TEMPLATE.md
-â”œâ”€â”€ CONTRIBUTING.md
-â”œâ”€â”€ CODE_OF_CONDUCT.md
-â”œâ”€â”€ SECURITY.md
-â”œâ”€â”€ LICENSE
-â””â”€â”€ README.md
+├── web/
+│   ├── index.html              # Single-file web app
+│   ├── doppler.js              # Forward model + retarded-time solver
+│   ├── spectrogram.js          # STFT + rendering
+│   ├── search.js               # Candidate funnel + scoring
+│   └── adsb.js                 # CSV parsing + track interpolation
+├── python/                     # Optional pipeline (roadmap)
+│   ├── geolocator/
+│   │   ├── adsb.py
+│   │   ├── dem.py
+│   │   ├── doppler.py
+│   │   ├── search.py
+│   │   └── cli.py
+│   └── requirements.txt
+├── data/
+│   ├── sample-adsb.csv         # Small demo dataset
+│   └── sample-audio.wav        # Demo recording (synthetic)
+├── docs/
+│   ├── demo.gif
+│   ├── methodology.md          # Deep-dive on the math
+│   └── architecture.md
+├── tests/
+│   ├── test_doppler.js
+│   ├── test_search.js
+│   └── test_adsb.py
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml
+│   │   └── deploy-pages.yml
+│   ├── ISSUE_TEMPLATE/
+│   └── PULL_REQUEST_TEMPLATE.md
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## ðŸ§° Tech Stack
+## 🧰 Tech Stack
 
 | Layer | Choice | Why |
 |---|---|---|
@@ -387,46 +389,46 @@ doppler-geolocator/
 
 ---
 
-## ðŸ“Œ Implementation Status
+## 📌 Implementation Status
 
 This project is under active development. Here's what's real vs. planned:
 
 | Component | Status |
 |---|---|
-| Spectrogram + click-to-measure | âœ… Working |
-| Doppler curve fit (speed, distance, $f_0$, CPA) | âœ… Working |
-| ADSB CSV ingestion + track interpolation | âœ… Working |
-| Candidate funnel (velocity, distance, offset, silence) | âœ… Working |
-| Retarded-time forward model | âœ… Working |
-| Locked-offset scoring | âœ… Working |
-| Leaflet map + result ranking | âœ… Working |
-| Country-wide ADSB ingestion | ðŸš§ Roadmap (needs paid API + 50 GB-scale storage) |
-| Real DEM ground elevation | ðŸš§ Roadmap |
-| ICAO type-code prop/jet filter | ðŸš§ Roadmap |
-| Thunder / siren / train source models | ðŸš§ Roadmap |
-| CLI + Python backend | ðŸš§ Roadmap |
-| 100 m full-US grid | ðŸš§ Roadmap (needs serious compute) |
+| Spectrogram + click-to-measure | ✅ Working |
+| Doppler curve fit (speed, distance, $f_0$, CPA) | ✅ Working |
+| ADSB CSV ingestion + track interpolation | ✅ Working |
+| Candidate funnel (velocity, distance, offset, silence) | ✅ Working |
+| Retarded-time forward model | ✅ Working |
+| Locked-offset scoring | ✅ Working |
+| Leaflet map + result ranking | ✅ Working |
+| Country-wide ADSB ingestion | 🚧 Roadmap (needs paid API + 50 GB-scale storage) |
+| Real DEM ground elevation | 🚧 Roadmap |
+| ICAO type-code prop/jet filter | 🚧 Roadmap |
+| Thunder / siren / train source models | 🚧 Roadmap |
+| CLI + Python backend | 🚧 Roadmap |
+| 100 m full-US grid | 🚧 Roadmap (needs serious compute) |
 
 The web app is a **fully functional implementation of the methodology** at the search-area scale (a city, a county, a drawn polygon). The roadmap items are the pieces that let it scale to "the whole continental US" without melting your laptop.
 
 ---
 
-## ðŸ—ºï¸ Roadmap
+## 🗺️ Roadmap
 
-- [ ] **v0.2** â€” CLI pipeline, DEM-based ground elevation, ICAO type-code filtering
-- [ ] **v0.3** â€” Thunder-source model (uses lightning-strike networks for source position)
-- [ ] **v0.4** â€” Global ADSB ingestion via [OpenSky Network](https://opensky-network.org/) or paid feed
-- [ ] **v0.5** â€” Batch scoring at country scale (GPU / WASM)
-- [ ] **v0.6** â€” Generic "known-positioned sound source" plugin API (sirens, trains, bells)
-- [ ] **v1.0** â€” Reproduces the full end-to-end demo from the original video
+- [ ] **v0.2** — CLI pipeline, DEM-based ground elevation, ICAO type-code filtering
+- [ ] **v0.3** — Thunder-source model (uses lightning-strike networks for source position)
+- [ ] **v0.4** — Global ADSB ingestion via [OpenSky Network](https://opensky-network.org/) or paid feed
+- [ ] **v0.5** — Batch scoring at country scale (GPU / WASM)
+- [ ] **v0.6** — Generic "known-positioned sound source" plugin API (sirens, trains, bells)
+- [ ] **v1.0** — Reproduces the full end-to-end demo from the original video
 
 Vote on priorities in [Discussions](https://github.com/Abdullah-Chaudary/doppler-geolocator/discussions).
 
 ---
 
-## âš ï¸ Honest Limitations
+## ⚠️ Honest Limitations
 
-This tool is powerful, but it isn't magic. It fails â€” sometimes silently â€” in these cases:
+This tool is powerful, but it isn't magic. It fails — sometimes silently — in these cases:
 
 - **No detectable plane in the recording.** Zero curves = zero events = no coordinate. The method narrows possibilities; it doesn't create evidence from nothing. Extend the audio window, try single-event mode with a known time, or switch to a different sound source.
 - **A plane passed but was too far to hear.** Same as above. A more sensitive spectrogram may or may not rescue it.
@@ -436,15 +438,15 @@ This tool is powerful, but it isn't magic. It fails â€” sometimes silently 
 - **Straight-line CPA model.** The fit assumes roughly constant velocity and heading near the CPA; a turning plane will fit poorly and widen your uncertainty bounds.
 - **Small search areas only.** Browser memory caps what you can search in one pass.
 
-The tool reports "no viable candidate" when the input contains no real signal. That's the correct output â€” not a bug.
+The tool reports "no viable candidate" when the input contains no real signal. That's the correct output — not a bug.
 
 ---
 
-## ðŸ›¡ï¸ Ethical Use
+## 🛡️ Ethical Use
 
 This tool geolocates recordings. That's inherently dual-use. Please use it responsibly:
 
-- **Use it for defense, research, journalism, and privacy awareness** â€” understanding that your recordings leak information is the first step toward protecting them.
+- **Use it for defense, research, journalism, and privacy awareness** — understanding that your recordings leak information is the first step toward protecting them.
 - **Don't use it to stalk, harass, or deanonymize people without consent.**
 - **Don't use it to identify the location of sensitive infrastructure, individuals' homes, or protected persons.**
 - **If you publish results**, disclose your methodology and confidence intervals honestly. False precision is harm.
@@ -454,14 +456,14 @@ The technique is public. The responsible thing is to understand it and to help p
 
 ---
 
-## ðŸ¤ Contributing
+## 🤝 Contributing
 
-Contributions are welcome â€” bug reports, methodology corrections, new source models, docs, and tests especially.
+Contributions are welcome — bug reports, methodology corrections, new source models, docs, and tests especially.
 
 - Read [CONTRIBUTING.md](CONTRIBUTING.md)
 - Read the [Code of Conduct](CODE_OF_CONDUCT.md)
 - Check [good first issues](https://github.com/Abdullah-Chaudary/doppler-geolocator/labels/good%20first%20issue)
-- Open an issue or a PR â€” small and focused is best
+- Open an issue or a PR — small and focused is best
 - For methodology changes, include a test or a reproducible example
 
 ```bash
@@ -473,26 +475,26 @@ pytest                # Python tests (once v0.2 lands)
 
 ---
 
-## ðŸ™ Acknowledgments
+## 🙏 Acknowledgments
 
 - The methodology and framing are directly inspired by the outstanding original research video that demonstrated the technique (retarded-time Doppler modeling, ADSB-driven candidate filtering, and locked-offset scoring are all from that work).
 - [OpenSky Network](https://opensky-network.org/) for making ADSB data accessible
 - [Leaflet](https://leafletjs.com) and [OpenStreetMap](https://www.openstreetmap.org) contributors
-- Everyone who's written about the physics of moving-source Doppler â€” this is standing on a century of that work
+- Everyone who's written about the physics of moving-source Doppler — this is standing on a century of that work
 
 ---
 
-## ðŸ“œ License
+## 📜 License
 
-MIT Â© the contributors. See [LICENSE](LICENSE).
+MIT © Abdullah Chaudary and the contributors. See [LICENSE](LICENSE).
 
-Do whatever you want with it â€” but use it responsibly.
+Do whatever you want with it — but use it responsibly.
 
 ---
 
 <div align="center">
 
-**If this project taught you something, give it a â­**
+**If this project taught you something, give it a ⭐**
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Abdullah-Chaudary/doppler-geolocator&type=Date)](https://star-history.com/#Abdullah-Chaudary/doppler-geolocator&Date)
 
