@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Doppler Geolocator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{--bg:#0e1116;--fg:#e6edf3;--accent:#58a6ff;--panel:#161b22;--border:#30363d;--muted:#8b949e;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+  header{padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--border)}
+  header h1{margin:0;font-size:18px}
+  header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  nav.tabs{display:flex;gap:4px;padding:8px 20px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+  nav.tabs button{padding:8px 16px;background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:6px;cursor:pointer;font-size:14px}
+  nav.tabs button.active{background:var(--accent);color:#000;border-color:var(--accent)}
+  main{padding:20px;max-width:1400px;margin:0 auto}
+  section{display:none}
+  section.active{display:block}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
+  .panel h2{margin:0 0 12px;font-size:16px}
+  .panel h3{margin:16px 0 8px;font-size:14px;color:var(--accent)}
+  label{display:block;margin:8px 0 4px;font-size:12px;color:var(--muted)}
+  input[type=number],input[type=text],select{background:var(--bg);border:1px solid var(--border);color:var(--fg);padding:6px 8px;border-radius:4px;font-size:13px;width:130px}
+  input[type=file]{color:var(--fg)}
+  button{padding:8px 16px;background:var(--accent);color:#000;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.secondary{background:transparent;color:var(--fg);border:1px solid var(--border)}
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:end}
+  .row>div{display:flex;flex-direction:column}
+  #spec-canvas{background:#000;border:1px solid var(--border);border-radius:4px;cursor:crosshair;max-width:100%;display:block}
+  #fit-info{font-family:monospace;font-size:12px;background:var(--bg);padding:10px;border-radius:4px;white-space:pre}
+  #map,#results-map{height:500px;border-radius:6px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--panel)}
+  tr:hover{background:rgba(88,166,255,.1);cursor:pointer}
+  .hint{color:var(--muted);font-size:12px;margin-top:6px}
+  .progress{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px}
+  .progress-bar{height:100%;background:var(--accent);width:0%;transition:width .2s}
+  #status{font-size:13px;color:var(--accent);margin-top:8px;font-family:monospace}
+  code{background:var(--bg);padding:1px 4px;border-radius:3px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Doppler Geolocator</h1>
+  <p>Locate a recording from aircraft Doppler signatures &amp; ADSB data</p>
+</header>
+<nav class="tabs">
+  <button data-tab="audio" class="active">1 · Audio</button>
+  <button data-tab="flights">2 · Flights</button>
+  <button data-tab="search">3 · Search</button>
+  <button data-tab="results">4 · Results</button>
+</nav>
+<main>
+
+<!-- ============ AUDIO TAB ============ -->
+<section id="tab-audio" class="active">
+  <div class="panel">
+    <h2>Step 1 · Load audio</h2>
+    <p class="hint">Upload the recording. A spectrogram is computed in-browser. Click along the Doppler curve (the faint descending band) to place measurement points, then fit.</p>
+    <input type="file" id="audio-file" accept="audio/*">
+    <div id="audio-info" class="hint"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Spectrogram &amp; fit</h2>
+    <div class="row">
+      <div><label>FFT size</label><select id="fft-size"><option>1024</option><option selected>2048</option><option>4096</option></select></div>
+      <div><label>Hop</label><select id="hop-size"><option>256</option><option selected>512</option><option>1024</option></select></div>
+      <div><label>Time zoom</label><input type="range" id="zoom-t" min="1" max="100" value="1" style="width:180px"></div>
+      <div><label>Freq zoom</label><input type="range" id="zoom-f" min="1" max="50" value="1" style="width:180px"></div>
+      <button id="clear-points" class="secondary">Clear points</button>
+      <button id="fit-btn">Fit curve</button>
+    </div>
+    <div style="margin-top:12px">
+      <canvas id="spec-canvas" width="1200" height="400"></canvas>
+    </div>
+    <div id="fit-info" style="margin-top:12px">No fit yet</div>
+    <div class="row" style="margin-top:10px">
+      <button id="apply-e1" class="secondary">Apply fit → Event 1</button>
+      <button id="apply-e2" class="secondary">Apply fit → Event 2</button>
+    </div>
+    <div class="hint">Tip: For two events, fit the first, click "Apply fit → Event 1", click "Clear points", then fit the second and apply to Event 2.</div>
+  </div>
+</section>
+
+<!-- ============ FLIGHTS TAB ============ -->
+<section id="tab-flights">
+  <div class="panel">
+    <h2>Step 2 · ADSB flight data</h2>
+    <p class="hint">CSV with columns: <code>hex,timestamp,lat,lon,alt_ft,speed_kts</code><br>
+    Rows sharing the same <code>hex</code> are grouped into one flight track. Altitudes &gt;1000 are treated as feet and converted to meters. Timestamps must be unix seconds (or any consistent epoch).</p>
+    <input type="file" id="adsb-file" accept=".csv">
+    <div id="adsb-info" class="hint"></div>
+  </div>
+  <div class="panel">
+    <h2>Flight preview</h2>
+    <div id="map"></div>
+  </div>
+</section>
+
+<!-- ============ SEARCH TAB ============ -->
+<section id="tab-search">
+  <div class="panel">
+    <h2>Step 3 · Configure search</h2>
+
+    <
